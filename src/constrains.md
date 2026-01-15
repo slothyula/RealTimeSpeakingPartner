@@ -465,12 +465,12 @@ Despite these constraints, the project successfully delivers a functional langua
 | Item | Details |
 |------|---------|
 | **Repository Name** | RealTimeSpeakingPartner |
-| **Repository URL** | `https://github.com/[USERNAME]/RealTimeSpeakingPartner` |
+| **Repository URL** | https://github.com/slothyula/RealTimeSpeakingPartner |
 | **Visibility** | Public |
 | **Primary Language** | TypeScript |
 | **License** | MIT |
 
-> ⚠️ **Note:** Replace `[USERNAME]` with the actual GitHub username after uploading.
+
 
 ### 6.2 Repository Contents
 
@@ -516,7 +516,7 @@ To run the project locally after cloning:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/[USERNAME]/RealTimeSpeakingPartner.git
+git clone https://github.com/slothyula/RealTimeSpeakingPartner.git
 cd RealTimeSpeakingPartner
 
 # 2. Install dependencies
