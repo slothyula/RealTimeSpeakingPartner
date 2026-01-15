@@ -1,0 +1,3093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Speaking Partner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255,255,255,0.95);
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .logo span {
+            color: #764ba2;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            font-weight: 500;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .user-name:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* User Profile Modal */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .profile-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .profile-email {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-stat {
+            background: #f8f9fa;
+            padding: 15px 10px;
+            border-radius: 12px;
+        }
+        
+        .profile-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .profile-stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .profile-level-badge {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        
+        .profile-level-beginner {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+        }
+        
+        .profile-level-intermediate {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            color: #333;
+        }
+        
+        .profile-level-advanced {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            color: white;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+        }
+
+        .btn-success {
+            background: #2ed573;
+            color: white;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Login Form */
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .auth-toggle a {
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Topics Grid */
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .topic-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .topic-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .topic-card.selected {
+            border-color: #2ed573;
+            background: #f0fff4;
+        }
+
+        .topic-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .topic-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .topic-meta {
+            display: flex;
+            gap: 10px;
+        }
+
+        .topic-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-beginner { background: #d4edda; color: #155724; }
+        .badge-intermediate { background: #fff3cd; color: #856404; }
+        .badge-advanced { background: #f8d7da; color: #721c24; }
+
+        /* Practice Area */
+        .practice-container {
+            display: block;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message.user {
+            align-items: flex-end;
+        }
+
+        .message.ai {
+            align-items: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.ai .message-bubble {
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+        }
+
+        .chat-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .chat-input button {
+            padding: 12px 25px;
+            border-radius: 25px;
+        }
+
+        /* Scores Panel */
+        .scores-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .score-item {
+            margin-bottom: 20px;
+        }
+
+        .score-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .score-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .score-fill.good { background: linear-gradient(90deg, #2ed573, #7bed9f); }
+        .score-fill.medium { background: linear-gradient(90deg, #ffa502, #ffcc00); }
+        .score-fill.low { background: linear-gradient(90deg, #ff4757, #ff6b81); }
+
+        .overall-score {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .overall-score .score-value {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        /* Feedback */
+        .feedback-section {
+            margin-top: 20px;
+        }
+
+        .feedback-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .feedback-item.suggestion {
+            background: #e8f4fd;
+            border-left: 3px solid #667eea;
+        }
+
+        /* Session Controls */
+        .session-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Microphone Button */
+        .mic-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mic-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .mic-btn.recording {
+            background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .mic-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Speaker Button */
+        .speaker-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .speaker-btn:hover {
+            opacity: 1;
+        }
+
+        .speaker-btn.speaking {
+            color: #667eea;
+            animation: speakingPulse 0.5s infinite;
+        }
+
+        @keyframes speakingPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Speech Status */
+        .speech-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .speech-status.recording {
+            background: #ffe6e6;
+            color: #ff4757;
+        }
+
+        .speech-status.speaking {
+            background: #e6f0ff;
+            color: #667eea;
+        }
+
+        /* Voice Settings */
+        .voice-settings {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .voice-settings label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .voice-settings select,
+        .voice-settings input[type="range"] {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        /* Auto-speak toggle */
+        .auto-speak-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Dark mode for speech elements */
+        body.dark-mode .speech-status {
+            background: #2a2a4a;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .speech-status.recording {
+            background: #4a2a3a;
+            color: #ff6b81;
+        }
+
+        body.dark-mode .speech-status.speaking {
+            background: #2a3a5a;
+            color: #a0b4f7;
+        }
+
+        body.dark-mode .voice-settings {
+            background: #2a2a4a;
+        }
+
+        body.dark-mode .voice-settings label {
+            color: #aaa;
+        }
+
+        body.dark-mode .voice-settings select {
+            background: #3a3a5a;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-error { background: #f8d7da; color: #721c24; }
+        .alert-info { background: #cce5ff; color: #004085; }
+
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            background: none;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+        }
+
+        body.dark-mode header {
+            background: rgba(30, 30, 50, 0.95);
+        }
+
+        body.dark-mode .logo {
+            color: #a0b4f7;
+        }
+
+        body.dark-mode .logo span {
+            color: #b794f6;
+        }
+
+        body.dark-mode .card {
+            background: rgba(30, 30, 50, 0.95);
+        }
+
+        body.dark-mode .card-title {
+            color: #e0e0e0;
+            border-bottom-color: #a0b4f7;
+        }
+
+        body.dark-mode .form-group label {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .form-group input {
+            background: #2a2a4a;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .form-group input:focus {
+            border-color: #a0b4f7;
+        }
+
+        body.dark-mode .form-group input::placeholder {
+            color: #888;
+        }
+
+        body.dark-mode .btn-secondary {
+            background: #3a3a5a;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .btn-secondary:hover {
+            background: #4a4a6a;
+        }
+
+        body.dark-mode .topic-card {
+            background: #2a2a4a;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .topic-card:hover {
+            border-color: #a0b4f7;
+            box-shadow: 0 8px 25px rgba(160, 180, 247, 0.2);
+        }
+
+        body.dark-mode .topic-card.selected {
+            border-color: #2ed573;
+            background: #1a3a2a;
+        }
+
+        body.dark-mode .topic-name {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .topic-description {
+            color: #aaa;
+        }
+
+        body.dark-mode .topic-badge {
+            background: #3a3a5a !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .badge-beginner { 
+            background: #1a3a2a !important; 
+            color: #7bed9f !important; 
+        }
+        body.dark-mode .badge-intermediate { 
+            background: #3a3a1a !important; 
+            color: #ffcc00 !important; 
+        }
+        body.dark-mode .badge-advanced { 
+            background: #3a1a2a !important; 
+            color: #ff6b81 !important; 
+        }
+
+        body.dark-mode .chat-container {
+            background: #2a2a4a;
+        }
+
+        body.dark-mode .chat-messages {
+            background: #1a1a2e;
+        }
+
+        body.dark-mode .message.ai .message-bubble {
+            background: #3a3a5a;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .message-label {
+            color: #888;
+        }
+
+        body.dark-mode .chat-input {
+            border-top-color: #444;
+            background: #2a2a4a;
+        }
+
+        body.dark-mode .chat-input input {
+            background: #1a1a2e;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .chat-input input:focus {
+            border-color: #a0b4f7;
+        }
+
+        body.dark-mode .scores-panel {
+            background: #2a2a4a;
+        }
+
+        body.dark-mode .score-label {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .score-bar {
+            background: #3a3a5a;
+        }
+
+        body.dark-mode .feedback-item {
+            background: #3a3a5a;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .feedback-item.suggestion {
+            background: #2a3a5a;
+            border-left-color: #a0b4f7;
+        }
+
+        body.dark-mode .welcome-banner {
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.9) 0%, rgba(30, 30, 50, 0.8) 100%);
+        }
+
+        body.dark-mode .welcome-banner h1 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .welcome-banner p {
+            color: #aaa;
+        }
+
+        body.dark-mode .spinner {
+            border-color: #3a3a5a;
+            border-top-color: #a0b4f7;
+        }
+
+        body.dark-mode .auth-toggle {
+            color: #aaa;
+        }
+
+        body.dark-mode .auth-toggle a {
+            color: #a0b4f7;
+        }
+
+        body.dark-mode .theme-toggle {
+            border-color: #a0b4f7;
+            color: #a0b4f7;
+        }
+
+        body.dark-mode .theme-toggle:hover {
+            background: rgba(160, 180, 247, 0.1);
+        }
+
+        body.dark-mode .alert-success { background: #1a3a2a; color: #7bed9f; }
+        body.dark-mode .alert-error { background: #3a1a2a; color: #ff6b81; }
+        body.dark-mode .alert-info { background: #1a2a3a; color: #70a1ff; }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 100%);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .welcome-banner h1 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .welcome-banner p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        /* History Styles */
+        .history-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .history-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+        }
+
+        .delete-conversation-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 10;
+            opacity: 0.6;
+        }
+
+        .delete-conversation-btn:hover {
+            background: #fee2e2;
+            border-color: #ef4444;
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .history-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .history-topic {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .history-date {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .history-card-body {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .history-stat {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .history-stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .history-stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .history-stat.score .history-stat-value {
+            color: #2ed573;
+        }
+
+        .history-stat.duration .history-stat-value {
+            color: #ffa502;
+        }
+
+        .history-stat.messages .history-stat-value {
+            color: #667eea;
+        }
+
+        .history-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: #e8f4fd;
+            color: #667eea;
+        }
+
+        /* Dark mode for history */
+        body.dark-mode .history-card {
+            background: #2a2a4a;
+            border-color: #444;
+        }
+
+        body.dark-mode .history-card:hover {
+            border-color: #a0b4f7;
+        }
+
+        body.dark-mode .history-topic {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .history-date {
+            color: #888;
+        }
+
+        body.dark-mode .history-stat {
+            background: #3a3a5a;
+        }
+
+        body.dark-mode .history-stat-label {
+            color: #aaa;
+        }
+
+        body.dark-mode .history-badge {
+            background: #3a3a5a;
+            color: #a0b4f7;
+        }
+
+        body.dark-mode .delete-conversation-btn {
+            background: #2a2a4a;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .delete-conversation-btn:hover {
+            background: #4a2a2a;
+            border-color: #ef4444;
+        }
+
+        /* Custom Confirmation Modal Styles */
+        .confirm-modal-content {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .confirm-modal-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+
+        .confirm-modal-title {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .confirm-modal-text {
+            color: #666;
+            margin: 0 0 25px 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .confirm-modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .confirm-btn-cancel {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .confirm-btn-cancel:hover {
+            background: #d1d5db;
+        }
+
+        .confirm-btn-delete {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .confirm-btn-delete:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .confirm-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner-small {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Dark mode for modals */
+        body.dark-mode .confirm-modal-content {
+            background: linear-gradient(145deg, #2a2a4a 0%, #1a1a2e 100%);
+        }
+
+        body.dark-mode .confirm-modal-title {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .confirm-modal-text {
+            color: #aaa;
+        }
+
+        body.dark-mode .confirm-btn-cancel {
+            background: #3a3a5a;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .confirm-btn-cancel:hover {
+            background: #4a4a6a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">🎤 Speaking<span>Partner</span></div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">🌙</button>
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <span class="user-name" id="userName" onclick="showUserProfile()" title="Click to view your profile"></span>
+                    <button class="btn btn-secondary" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Login View -->
+        <div id="loginView" class="view active">
+            <div class="auth-container">
+                <div class="card">
+                    <h2 class="card-title" id="authTitle">🔐 Login</h2>
+                    <div id="authAlert"></div>
+                    
+                    <form id="authForm">
+                        <div class="form-group" id="nameGroup" style="display: none;">
+                            <label>Full Name</label>
+                            <input type="text" id="nameInput" placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="emailInput" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="passwordInput" placeholder="Enter your password" required>
+                        </div>
+                        <div class="form-group" id="targetLanguageGroup" style="display: none;">
+                            <label>🌐 Target Language (What language do you want to practice?)</label>
+                            <select id="targetLanguageInput" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                                <option value="English">English</option>
+                                <option value="Spanish">Spanish (Español)</option>
+                                <option value="French">French (Français)</option>
+                                <option value="German">German (Deutsch)</option>
+                                <option value="Italian">Italian (Italiano)</option>
+                                <option value="Portuguese">Portuguese (Português)</option>
+                                <option value="Russian">Russian (Русский)</option>
+                                <option value="Chinese">Chinese (中文)</option>
+                                <option value="Japanese">Japanese (日本語)</option>
+                                <option value="Korean">Korean (한국어)</option>
+                                <option value="Turkish">Turkish (Türkçe)</option>
+                                <option value="Arabic">Arabic (العربية)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="authButton">Login</button>
+                    </form>
+                    
+                    <div class="auth-toggle">
+                        <span id="authToggleText">Don't have an account? </span>
+                        <a onclick="toggleAuthMode()" id="authToggleLink">Register</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view">
+            <div class="welcome-banner">
+                <h1>👋 Welcome back, <span id="welcomeName"></span>!</h1>
+                <p>Select a topic below to start practicing your speaking skills</p>
+            </div>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 15px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">🌐 Practice Language</label>
+                        <select id="languageSelector" onchange="onLanguageChange()" style="width: 100%; padding: 10px 15px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
+                            <option value="English">🇬🇧 English</option>
+                            <option value="Spanish">🇪🇸 Spanish (Español)</option>
+                            <option value="French">🇫🇷 French (Français)</option>
+                            <option value="German">🇩🇪 German (Deutsch)</option>
+                            <option value="Italian">🇮🇹 Italian (Italiano)</option>
+                            <option value="Portuguese">🇵🇹 Portuguese (Português)</option>
+                            <option value="Russian">🇷🇺 Russian (Русский)</option>
+                            <option value="Chinese">🇨🇳 Chinese (中文)</option>
+                            <option value="Japanese">🇯🇵 Japanese (日本語)</option>
+                            <option value="Korean">🇰🇷 Korean (한국어)</option>
+                            <option value="Turkish">🇹🇷 Turkish (Türkçe)</option>
+                            <option value="Arabic">🇸🇦 Arabic (العربية)</option>
+                        </select>
+                    </div>
+                    <div style="color: #666; font-size: 0.9rem;">
+                        💡 Topics will be filtered by the selected language
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">📚 Choose a Topic</h3>
+                <div class="topics-grid" id="topicsGrid"></div>
+                <div class="session-controls">
+                    <button class="btn btn-primary" onclick="startSession()" id="startBtn" disabled>
+                        🎯 Start Practice Session
+                    </button>
+                    <button class="btn btn-secondary" onclick="showHistoryView()">
+                        📜 View History
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Practice View -->
+        <div id="practiceView" class="view">
+            <div class="practice-container">
+                <!-- Chat Area -->
+                <div>
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            💬 Speaking Practice - <span id="currentTopicName">Topic</span>
+                        </div>
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message ai">
+                                <span class="message-label">AI Partner</span>
+                                <div class="message-bubble">
+                                    Hello! I'm your AI speaking partner. Let's practice together! How are you today?
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Speech Status -->
+                        <div class="speech-status" id="speechStatus" style="display: none;">
+                            <span id="speechStatusIcon">🎤</span>
+                            <span id="speechStatusText">Listening...</span>
+                        </div>
+                        <div class="chat-input">
+                            <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="Click to speak">
+                                🎤
+                            </button>
+                            <input type="text" id="userInput" placeholder="Type or click mic to speak..." onkeypress="handleKeyPress(event)">
+                            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                        </div>
+                        <!-- Voice Settings -->
+                        <div class="voice-settings">
+                            <div class="auto-speak-toggle">
+                                <span>🔊 Auto-speak</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="autoSpeakToggle" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <label>
+                                Speed:
+                                <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1">
+                            </label>
+                            <label>
+                                Voice:
+                                <select id="voiceSelect"></select>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="session-controls">
+                        <button class="btn btn-danger" onclick="endSession()">🛑 End Session</button>
+                        <button class="btn btn-secondary" onclick="goToDashboard()">📚 Change Topic</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results View -->
+        <div id="resultsView" class="view">
+            <div class="card">
+                <h2 class="card-title">🏆 Session Complete!</h2>
+                
+                <!-- Accuracy Score (Main Highlight) -->
+                <div class="overall-score" style="margin-bottom: 30px;">
+                    <div>Grammar Accuracy Score</div>
+                    <div class="score-value" id="accuracyScore">-</div>
+                    <div style="font-size: 0.9rem; margin-top: 5px;">
+                        <span id="correctCount">-</span> correct / <span id="incorrectCount">-</span> incorrect sentences
+                    </div>
+                </div>
+
+                <!-- Session Stats -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
+                    <div style="text-align: center; padding: 15px; background: rgba(46, 213, 115, 0.1); border-radius: 10px;">
+                        <div style="font-size: 2rem; color: #2ed573;">✓</div>
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="correctSentences">0</div>
+                        <div style="font-size: 0.85rem; color: #666;">Correct</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: rgba(255, 71, 87, 0.1); border-radius: 10px;">
+                        <div style="font-size: 2rem; color: #ff4757;">✗</div>
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="incorrectSentences">0</div>
+                        <div style="font-size: 0.85rem; color: #666;">Incorrect</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 10px;">
+                        <div style="font-size: 2rem; color: #667eea;">📊</div>
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="totalSentences">0</div>
+                        <div style="font-size: 0.85rem; color: #666;">Total</div>
+                    </div>
+                </div>
+
+                <!-- Mistakes Section -->
+                <div class="feedback-section" id="mistakesSection" style="display: none;">
+                    <h4 style="margin-bottom: 10px;">❌ Your Mistakes</h4>
+                    <div id="mistakesList"></div>
+                </div>
+
+                <div class="session-controls" style="justify-content: center; margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="goToDashboard()">📚 Practice Again</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History View -->
+        <div id="historyView" class="view">
+            <div class="card">
+                <h2 class="card-title">📜 Conversation History</h2>
+                
+                <div id="historyLoading" class="loading active">
+                    <div class="spinner"></div>
+                    <p>Loading history...</p>
+                </div>
+
+                <div id="historyEmpty" style="display: none; text-align: center; padding: 40px; color: #888;">
+                    <div style="font-size: 3rem;">📭</div>
+                    <h3>No conversations yet</h3>
+                    <p>Start practicing to see your history here!</p>
+                </div>
+
+                <div id="historyList" style="display: none;"></div>
+
+                <div class="session-controls" style="justify-content: center; margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="goToDashboard()">← Back to Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let isLoginMode = true;
+        let currentUser = null;
+        let selectedTopicId = null;
+        let topics = [];
+        let currentSessionFeedbacks = []; // Track feedbacks during session
+
+        // ==================== SPEECH RECOGNITION (Web Speech API) ====================
+        let recognition = null;
+        let isRecording = false;
+
+        // Map language names to Web Speech API language codes
+        function getSpeechRecognitionLanguageCode(languageName) {
+            const languageCodeMap = {
+                'English': 'en-US',
+                'Spanish': 'es-ES',
+                'French': 'fr-FR',
+                'German': 'de-DE',
+                'Italian': 'it-IT',
+                'Portuguese': 'pt-PT',
+                'Russian': 'ru-RU',
+                'Chinese': 'zh-CN',
+                'Japanese': 'ja-JP',
+                'Korean': 'ko-KR',
+                'Turkish': 'tr-TR',
+                'Arabic': 'ar-SA',
+                'Dutch': 'nl-NL',
+                'Polish': 'pl-PL',
+                'Swedish': 'sv-SE',
+                'Norwegian': 'no-NO',
+                'Danish': 'da-DK',
+                'Finnish': 'fi-FI',
+                'Czech': 'cs-CZ',
+                'Hungarian': 'hu-HU',
+                'Romanian': 'ro-RO',
+                'Greek': 'el-GR',
+                'Hindi': 'hi-IN',
+                'Thai': 'th-TH',
+                'Vietnamese': 'vi-VN',
+                'Indonesian': 'id-ID',
+                'Malay': 'ms-MY',
+                'Filipino': 'fil-PH'
+            };
+            
+            return languageCodeMap[languageName] || 'en-US';
+        }
+        
+        // Initialize Speech Recognition with language support
+        function initSpeechRecognition(targetLanguage = null) {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                
+                // Recreate recognition instance if it exists (to update language)
+                if (recognition && isRecording) {
+                    recognition.stop();
+                }
+                
+                recognition = new SpeechRecognition();
+                
+                // Get language code for the target language
+                const languageToUse = targetLanguage || selectedLanguage || 'English';
+                const langCode = getSpeechRecognitionLanguageCode(languageToUse);
+                
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = langCode;
+                
+                console.log(`🌍 Speech Recognition initialized for ${languageToUse} (${langCode})`);
+                
+                recognition.onstart = () => {
+                    isRecording = true;
+                    updateMicButton();
+                    showSpeechStatus('🎤', `Listening in ${languageToUse}... Speak now!`, 'recording');
+                };
+                
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    // Show interim results in input
+                    const input = document.getElementById('userInput');
+                    if (interimTranscript) {
+                        input.value = interimTranscript;
+                        input.placeholder = `Listening in ${languageToUse}...`;
+                    }
+                    
+                    // When final result is ready, put it in input
+                    if (finalTranscript) {
+                        input.value = finalTranscript;
+                        console.log(`✅ Speech recognized in ${languageToUse}: "${finalTranscript}"`);
+                        // Automatically send the message
+                        setTimeout(() => {
+                            sendMessage();
+                        }, 500);
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    isRecording = false;
+                    updateMicButton();
+                    
+                    if (event.error === 'not-allowed') {
+                        showSpeechStatus('⚠️', 'Microphone access denied. Please allow microphone access.', '');
+                    } else if (event.error === 'no-speech') {
+                        showSpeechStatus('🔇', `No speech detected in ${languageToUse}. Try again.`, '');
+                    } else if (event.error === 'language-not-supported') {
+                        showSpeechStatus('⚠️', `${languageToUse} language not supported. Trying English.`, '');
+                        // Fallback to English
+                        setTimeout(() => {
+                            initSpeechRecognition('English');
+                        }, 1000);
+                    } else {
+                        showSpeechStatus('❌', `Error: ${event.error}`, '');
+                    }
+                    
+                    setTimeout(hideSpeechStatus, 3000);
+                };
+                
+                recognition.onend = () => {
+                    isRecording = false;
+                    updateMicButton();
+                    hideSpeechStatus();
+                };
+                
+                return true;
+            } else {
+                console.warn('❌ Web Speech API not supported');
+                const micBtn = document.getElementById('micBtn');
+                if (micBtn) {
+                    micBtn.disabled = true;
+                    micBtn.title = 'Speech recognition not supported in this browser';
+                }
+                return false;
+            }
+        }
+
+        function toggleRecording() {
+            // Get current language (from session or selected language)
+            const currentLanguage = selectedLanguage || 'English';
+            
+            // Initialize or reinitialize with current language
+            if (!recognition) {
+                if (!initSpeechRecognition(currentLanguage)) {
+                    alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+                    return;
+                }
+            } else {
+                // Update language if it changed
+                const langCode = getSpeechRecognitionLanguageCode(currentLanguage);
+                if (recognition.lang !== langCode) {
+                    console.log(`🔄 Updating speech recognition language to ${currentLanguage} (${langCode})`);
+                    initSpeechRecognition(currentLanguage);
+                }
+            }
+            
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error('Error starting recognition:', e);
+                    // Try reinitializing if start fails
+                    initSpeechRecognition(currentLanguage);
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (e2) {
+                            console.error('Error starting recognition after reinit:', e2);
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        function updateMicButton() {
+            const micBtn = document.getElementById('micBtn');
+            if (isRecording) {
+                micBtn.classList.add('recording');
+                micBtn.innerHTML = '⏹️';
+                micBtn.title = 'Click to stop recording';
+            } else {
+                micBtn.classList.remove('recording');
+                micBtn.innerHTML = '🎤';
+                micBtn.title = 'Click to speak';
+            }
+        }
+
+        function showSpeechStatus(icon, text, type) {
+            const status = document.getElementById('speechStatus');
+            const statusIcon = document.getElementById('speechStatusIcon');
+            const statusText = document.getElementById('speechStatusText');
+            
+            status.style.display = 'flex';
+            status.className = 'speech-status ' + type;
+            statusIcon.textContent = icon;
+            statusText.textContent = text;
+        }
+
+        function hideSpeechStatus() {
+            document.getElementById('speechStatus').style.display = 'none';
+        }
+
+        // ==================== TEXT-TO-SPEECH (SpeechSynthesis API) ====================
+        let synthesis = window.speechSynthesis;
+        let voices = [];
+        let isSpeaking = false;
+
+        function initTextToSpeech() {
+            if ('speechSynthesis' in window) {
+                // Load voices
+                voices = synthesis.getVoices();
+                
+                // Voices might load asynchronously
+                if (synthesis.onvoiceschanged !== undefined) {
+                    synthesis.onvoiceschanged = () => {
+                        voices = synthesis.getVoices();
+                        populateVoiceList(selectedLanguage || 'English');
+                    };
+                }
+                
+                populateVoiceList(selectedLanguage || 'English');
+                console.log('✅ SpeechSynthesis API initialized');
+                return true;
+            } else {
+                console.warn('❌ SpeechSynthesis API not supported');
+                return false;
+            }
+        }
+
+        function populateVoiceList(targetLanguage = null) {
+            const voiceSelect = document.getElementById('voiceSelect');
+            if (!voiceSelect) return;
+            
+            voiceSelect.innerHTML = '';
+            
+            // Get current selected language from dashboard or use provided
+            const currentLanguage = targetLanguage || selectedLanguage || 'English';
+            
+            // Map language names to language codes
+            const languageCodeMap = {
+                'English': 'en',
+                'Spanish': 'es',
+                'French': 'fr',
+                'German': 'de',
+                'Italian': 'it',
+                'Portuguese': 'pt',
+                'Russian': 'ru',
+                'Chinese': 'zh',
+                'Japanese': 'ja',
+                'Korean': 'ko',
+                'Turkish': 'tr',
+                'Arabic': 'ar',
+                'Dutch': 'nl',
+                'Polish': 'pl',
+                'Swedish': 'sv',
+                'Norwegian': 'no',
+                'Danish': 'da',
+                'Finnish': 'fi',
+                'Czech': 'cs',
+                'Hungarian': 'hu',
+                'Romanian': 'ro',
+                'Greek': 'el',
+                'Hindi': 'hi',
+                'Thai': 'th',
+                'Vietnamese': 'vi',
+                'Indonesian': 'id',
+                'Malay': 'ms',
+                'Filipino': 'fil'
+            };
+            
+            const langCode = languageCodeMap[currentLanguage] || 'en';
+            
+            // Filter voices by language code
+            const filteredVoices = voices.filter(voice => {
+                const voiceLang = voice.lang.toLowerCase();
+                return voiceLang.startsWith(langCode.toLowerCase());
+            });
+            
+            // If no voices found for the language, show all available voices
+            const voicesToShow = filteredVoices.length > 0 ? filteredVoices : voices;
+            
+            voicesToShow.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.textContent = `${voice.name} (${voice.lang})`;
+                option.value = index;
+                option.setAttribute('data-voice', voice.name);
+                option.setAttribute('data-lang', voice.lang);
+                
+                // Set default voice based on language
+                if (filteredVoices.length > 0) {
+                    // For the selected language, prefer Google voices or first available
+                    if (index === 0) {
+                        option.selected = true;
+                    } else if (voice.name.includes('Google') && !voiceSelect.options[0]?.selected) {
+                        voiceSelect.options[0].selected = false;
+                        option.selected = true;
+                    }
+                } else {
+                    // Fallback: prefer English voices if no voices for selected language
+                    if (voice.lang.startsWith('en') && index === 0) {
+                        option.selected = true;
+                    }
+                }
+                
+                voiceSelect.appendChild(option);
+            });
+            
+            console.log(`🌍 Loaded ${voicesToShow.length} voice(s) for ${currentLanguage} (${langCode})`);
+        }
+
+        function speakText(text) {
+            if (!synthesis || !document.getElementById('autoSpeakToggle').checked) {
+                return;
+            }
+            
+            // Cancel any ongoing speech
+            synthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Get selected voice
+            const voiceSelect = document.getElementById('voiceSelect');
+            const selectedOption = voiceSelect.options[voiceSelect.selectedIndex];
+            if (selectedOption) {
+                const voiceName = selectedOption.getAttribute('data-voice');
+                const voice = voices.find(v => v.name === voiceName);
+                if (voice) utterance.voice = voice;
+            }
+            
+            // Get speech rate
+            utterance.rate = parseFloat(document.getElementById('speechRate').value);
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            utterance.onstart = () => {
+                isSpeaking = true;
+                showSpeechStatus('🔊', 'AI is speaking...', 'speaking');
+            };
+            
+            utterance.onend = () => {
+                isSpeaking = false;
+                hideSpeechStatus();
+            };
+            
+            utterance.onerror = (e) => {
+                console.error('Speech synthesis error:', e);
+                isSpeaking = false;
+                hideSpeechStatus();
+            };
+            
+            synthesis.speak(utterance);
+        }
+
+        function stopSpeaking() {
+            if (synthesis) {
+                synthesis.cancel();
+                isSpeaking = false;
+                hideSpeechStatus();
+            }
+        }
+
+        // Initialize speech APIs on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get saved language preference or default to English
+            const savedLang = localStorage.getItem('selectedLanguage') || 'English';
+            selectedLanguage = savedLang;
+            
+            // Initialize speech recognition with saved language
+            initSpeechRecognition(savedLang);
+            initTextToSpeech();
+            
+            // Check for existing token and auto-login
+            checkExistingSession();
+        });
+        
+        // Check if user has an active session in this tab
+        async function checkExistingSession() {
+            const token = sessionStorage.getItem('authToken');
+            if (token) {
+                try {
+                    const result = await api('/auth/user', 'GET');
+                    if (result.success && result.user) {
+                        currentUser = result.user;
+                        showDashboard();
+                    } else {
+                        // Token invalid, clear it silently
+                        sessionStorage.removeItem('authToken');
+                    }
+                } catch (error) {
+                    // Silently handle 401 errors (user not logged in or token expired)
+                    // This is expected when server restarts or user hasn't logged in yet
+                    sessionStorage.removeItem('authToken');
+                }
+            }
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const themeBtn = document.querySelector('.theme-toggle');
+            body.classList.toggle('dark-mode');
+            
+            if (body.classList.contains('dark-mode')) {
+                themeBtn.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+
+            } else {
+                themeBtn.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load saved theme on page load
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeBtn = document.querySelector('.theme-toggle');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeBtn.textContent = '☀️';
+            }
+        }
+
+        // Initialize theme on load
+        document.addEventListener('DOMContentLoaded', loadSavedTheme);
+
+        // API calls - Token based (supports multi-tab)
+        async function api(endpoint, method = 'GET', data = null) {
+            const token = sessionStorage.getItem('authToken');
+            const options = {
+                method,
+                headers: { 
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            // Add Authorization header if token exists
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            if (data) options.body = JSON.stringify(data);
+            
+            try {
+                const response = await fetch(`/api${endpoint}`, options);
+                
+                // Handle 401 errors silently for auth/user endpoint (expected when not logged in)
+                if (!response.ok && response.status === 401 && endpoint === '/auth/user') {
+                    // Silently return error for auth/user - this is expected behavior
+                    return { success: false, message: 'Not logged in' };
+                }
+                
+                return await response.json();
+            } catch (error) {
+                // Handle network errors
+                console.error(`API call failed for ${endpoint}:`, error);
+                return { success: false, message: 'Network error' };
+            }
+        }
+
+        // Auth functions
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('authTitle').textContent = isLoginMode ? '🔐 Login' : '📝 Register';
+            document.getElementById('authButton').textContent = isLoginMode ? 'Login' : 'Register';
+            document.getElementById('nameGroup').style.display = isLoginMode ? 'none' : 'block';
+            document.getElementById('targetLanguageGroup').style.display = isLoginMode ? 'none' : 'block';
+            document.getElementById('authToggleText').textContent = isLoginMode ? "Don't have an account? " : "Already have an account? ";
+            document.getElementById('authToggleLink').textContent = isLoginMode ? 'Register' : 'Login';
+            document.getElementById('authAlert').innerHTML = '';
+        }
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const name = document.getElementById('nameInput').value;
+            
+            try {
+                if (isLoginMode) {
+                    const result = await api('/auth/login', 'POST', { email, password });
+                    if (result.success) {
+                        // Store token in sessionStorage (per-tab)
+                        sessionStorage.setItem('authToken', result.token);
+                        currentUser = result.user;
+                        showDashboard();
+                    } else {
+                        showAlert('authAlert', result.message, 'error');
+                    }
+                } else {
+                    const targetLanguage = document.getElementById('targetLanguageInput').value || 'English';
+                    const result = await api('/auth/register', 'POST', { name, email, password, targetLanguage });
+                    if (result.success) {
+                        showAlert('authAlert', 'Registration successful! Please login.', 'success');
+                        toggleAuthMode();
+                    } else {
+                        showAlert('authAlert', result.message, 'error');
+                    }
+                }
+            } catch (error) {
+                showAlert('authAlert', 'An error occurred. Please try again.', 'error');
+            }
+        });
+
+        async function logout() {
+            await api('/auth/logout', 'POST');
+            // Clear token from sessionStorage
+            sessionStorage.removeItem('authToken');
+            currentUser = null;
+            showView('loginView');
+            document.getElementById('userInfo').style.display = 'none';
+        }
+
+        // View functions
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        // Global language selector
+        let selectedLanguage = localStorage.getItem('selectedLanguage') || 'English'; // Default language
+        
+        // Load user's target language on login
+        async function loadUserLanguage() {
+            try {
+                const userResult = await api('/auth/user');
+                if (userResult.success && userResult.user) {
+                    // Load user's target language from database (if available)
+                    const statsResult = await api('/auth/user/stats');
+                    // For now, use localStorage or default to English
+                    const savedLang = localStorage.getItem('selectedLanguage');
+                    if (savedLang) {
+                        selectedLanguage = savedLang;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user language:', error);
+            }
+            
+            // Set language selector
+            const selector = document.getElementById('languageSelector');
+            if (selector) {
+                selector.value = selectedLanguage;
+            }
+        }
+        
+        // Language change handler
+        async function onLanguageChange() {
+            const selector = document.getElementById('languageSelector');
+            selectedLanguage = selector.value;
+            localStorage.setItem('selectedLanguage', selectedLanguage);
+            
+            // Update voice list for the selected language
+            populateVoiceList(selectedLanguage);
+            
+            // Update speech recognition language if recognition is already initialized
+            if (recognition) {
+                console.log(`🔄 Updating speech recognition language to ${selectedLanguage}`);
+                initSpeechRecognition(selectedLanguage);
+            }
+            
+            await loadTopicsForLanguage(selectedLanguage);
+        }
+        
+        // Load topics for specific language
+        async function loadTopicsForLanguage(language = 'English') {
+            try {
+                const result = await api(`/topics?language=${encodeURIComponent(language)}`);
+                if (result.success && result.topics) {
+                    topics = result.topics;
+                } else {
+                    topics = [];
+                }
+                renderTopics();
+            } catch (error) {
+                console.error('Error loading topics:', error);
+                topics = [];
+                renderTopics();
+            }
+        }
+
+        async function showDashboard() {
+            showView('dashboardView');
+            document.getElementById('userInfo').style.display = 'flex';
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('welcomeName').textContent = currentUser.name;
+            
+            // Load and set user's language preference
+            await loadUserLanguage();
+            
+            // Update voice list for the selected language when dashboard is shown
+            populateVoiceList(selectedLanguage);
+            
+            // Load topics for selected language
+            await loadTopicsForLanguage(selectedLanguage);
+        }
+
+        function renderTopics() {
+            const grid = document.getElementById('topicsGrid');
+            if (!grid) return;
+            
+            if (topics.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">📚</div>
+                        <h3>No topics available for ${selectedLanguage}</h3>
+                        <p style="margin-top: 10px; color: #999;">Admin can add topics for this language from the admin panel.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = topics.map(topic => `
+                <div class="topic-card ${selectedTopicId === topic.topicId ? 'selected' : ''}" 
+                     onclick="selectTopic(${topic.topicId})">
+                    <div class="topic-name">${topic.name}</div>
+                    <div class="topic-description">${topic.description || 'Practice conversation on this topic'}</div>
+                    <div class="topic-meta">
+                        <span class="topic-badge badge-${topic.difficulty ? topic.difficulty.toLowerCase() : 'intermediate'}">${topic.difficulty || 'Intermediate'}</span>
+                        <span class="topic-badge" style="background: #e0e0e0;">${topic.category || 'General'}</span>
+                        ${topic.targetLanguage ? `<span class="topic-badge" style="background: #667eea; color: white;">🌐 ${topic.targetLanguage}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectTopic(topicId) {
+            selectedTopicId = topicId;
+            renderTopics();
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        async function startSession() {
+            if (!selectedTopicId) return;
+            
+            // Reset session feedbacks
+            currentSessionFeedbacks = [];
+            
+            const result = await api('/session/start', 'POST', { topicId: selectedTopicId });
+            if (result.success) {
+                const topic = topics.find(t => t.topicId === selectedTopicId);
+                const targetLanguage = result.targetLanguage || topic.targetLanguage || selectedLanguage || 'English';
+                
+                // Update selected language if topic has a specific language
+                if (targetLanguage && targetLanguage !== selectedLanguage) {
+                    selectedLanguage = targetLanguage;
+                    const langSelector = document.getElementById('languageSelector');
+                    if (langSelector) {
+                        langSelector.value = targetLanguage;
+                        localStorage.setItem('selectedLanguage', targetLanguage);
+                    }
+                }
+                
+                // Update voice list for the topic's target language
+                populateVoiceList(targetLanguage);
+                
+                // Update speech recognition language for the session
+                console.log(`🎤 Updating speech recognition to ${targetLanguage} for session`);
+                initSpeechRecognition(targetLanguage);
+                
+                document.getElementById('currentTopicName').textContent = topic.name;
+                
+                // Use initial greeting from backend or fallback
+                const initialGreeting = result.initialGreeting || 
+                    `Hello! I'm your AI speaking partner. We'll be practicing "${topic.name}" today. Let's have a great conversation! How are you doing?`;
+                
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="message ai">
+                        <span class="message-label">AI Partner</span>
+                        <div class="message-bubble">
+                            ${initialGreeting}
+                        </div>
+                    </div>
+                `;
+                
+                // Speak the initial greeting if auto-speak is enabled
+                if (document.getElementById('autoSpeakToggle')?.checked) {
+                    speakText(initialGreeting);
+                }
+                
+                resetScores();
+                showView('practiceView');
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            // Add user message
+            addMessage(text, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message ai typing';
+            typingDiv.innerHTML = `
+                <span class="message-label">AI Partner</span>
+                <div class="message-bubble">Analyzing...</div>
+            `;
+            document.getElementById('chatMessages').appendChild(typingDiv);
+            
+            // Send to API for analysis
+            const result = await api('/session/chat', 'POST', { text });
+            
+            // Remove typing indicator
+            typingDiv.remove();
+            
+            if (result.success) {
+                // Add AI response with analysis - pass shortFeedback and feedbackType
+                addMessageWithAnalysis(result.aiResponse, result.analysis, result.shortFeedback, result.feedbackType);
+                
+                // Update scores
+                if (result.scores) {
+                    updateScores(result.scores);
+                }
+                
+                // Track feedback if there was a correction
+                if (result._tracking && result._tracking.hadCorrection) {
+                    currentSessionFeedbacks.push({
+                        originalText: text,
+                        aiResponse: result.aiResponse,
+                        analysis: result.analysis,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            } else {
+                addMessage('Sorry, I had trouble responding. Please try again.', 'ai');
+            }
+        }
+
+        function addMessage(text, type) {
+            const container = document.getElementById('chatMessages');
+            const label = type === 'user' ? 'You' : 'AI Partner';
+            container.innerHTML += `
+                <div class="message ${type}">
+                    <span class="message-label">${label}</span>
+                    <div class="message-bubble">${text}</div>
+                </div>
+            `;
+            container.scrollTop = container.scrollHeight;
+            
+            // Speak AI responses automatically
+            if (type === 'ai') {
+                speakText(text);
+            }
+        }
+
+        function addMessageWithAnalysis(feedback, analysis, shortFeedback, feedbackType) {
+            const container = document.getElementById('chatMessages');
+            
+            // Use shortFeedback from server, or build from analysis
+            let feedbackHtml = '';
+            
+            // Determine the feedback to show
+            const displayFeedback = shortFeedback || 'Perfect! No mistakes detected.';
+            const displayType = feedbackType || 'success';
+            
+            // Style based on feedback type
+            let bgColor, textColor, borderColor, icon;
+            if (displayType === 'warning') {
+                bgColor = '#fff3cd';
+                textColor = '#856404';
+                borderColor = '#ffc107';
+                icon = '⚠️';
+            } else if (displayType === 'info') {
+                bgColor = '#d1ecf1';
+                textColor = '#0c5460';
+                borderColor = '#17a2b8';
+                icon = '💡';
+            } else {
+                bgColor = '#d4edda';
+                textColor = '#155724';
+                borderColor = '#28a745';
+                icon = '✅';
+            }
+            
+            // Build categorized feedback for ALL mistakes
+            let mistakesHtml = '';
+            let correctionSummaryHtml = '';
+            let improvedSentenceHtml = '';
+            
+            // Show correction summary if available
+            if (analysis && analysis.correction_summary) {
+                correctionSummaryHtml = `
+                    <div style="margin-top: 8px; padding: 8px 12px; background: rgba(255,255,255,0.5); border-radius: 6px; font-size: 13px; color: #555; border-left: 3px solid #6c757d;">
+                        <strong>📝 Summary:</strong> ${analysis.correction_summary}
+                    </div>
+                `;
+            }
+            
+            // Build detailed mistake info for EACH category
+            if (analysis && analysis.mistakes && analysis.mistakes.length > 0) {
+                // Category display name mapping
+                const categoryDisplayNames = {
+                    'grammar_tense_verb': 'Grammar – Tense & Verb Forms',
+                    'grammar_sentence_structure': 'Grammar – Sentence Structure',
+                    'vocabulary_word_choice': 'Vocabulary & Word Choice',
+                    'prepositions_articles': 'Prepositions & Articles',
+                    'word_order': 'Word Order',
+                    'spelling_form': 'Spelling / Form Errors',
+                    'fluency_naturalness': 'Fluency & Naturalness',
+                    'clarity_meaning': 'Clarity & Meaning',
+                    // Legacy mappings
+                    'verb_tense': 'Grammar – Tense & Verb Forms',
+                    'agreement': 'Grammar – Subject-Verb Agreement',
+                    'article_determiner': 'Prepositions & Articles',
+                    'preposition': 'Prepositions & Articles',
+                    'sentence_structure': 'Grammar – Sentence Structure',
+                    'verb_form': 'Grammar – Tense & Verb Forms',
+                    'pronoun_reference': 'Grammar – Pronoun Reference',
+                    'general': 'General'
+                };
+                
+                // Category colors
+                const categoryColors = {
+                    'grammar_tense_verb': '#e74c3c',
+                    'grammar_sentence_structure': '#9b59b6',
+                    'vocabulary_word_choice': '#3498db',
+                    'prepositions_articles': '#e67e22',
+                    'word_order': '#1abc9c',
+                    'spelling_form': '#f39c12',
+                    'fluency_naturalness': '#2ecc71',
+                    'clarity_meaning': '#34495e'
+                };
+                
+                // Build HTML for each mistake
+                mistakesHtml = '<div style="margin-top: 12px;">';
+                mistakesHtml += '<div style="font-size: 12px; font-weight: 600; color: #555; margin-bottom: 8px;">📋 Categorized Feedback:</div>';
+                
+                // Filter out invalid mistakes where original = corrected (not a real error)
+                const validMistakes = analysis.mistakes.filter(mistake => {
+                    const original = (mistake.original_part || mistake.original_text || mistake.original || '').toLowerCase().trim();
+                    const corrected = (mistake.corrected_version || mistake.corrected_text || mistake.corrected || '').toLowerCase().trim();
+                    // Skip if original equals corrected (not a real correction)
+                    return original !== corrected && original !== '' && corrected !== '';
+                });
+                
+                if (validMistakes.length === 0) {
+                    // No valid mistakes, show success instead
+                    mistakesHtml = '';
+                } else {
+                    validMistakes.forEach((mistake, index) => {
+                        const category = mistake.category || 'general';
+                        const displayName = mistake.category_display || categoryDisplayNames[category] || category.replace(/_/g, ' ');
+                        const catColor = categoryColors[category] || '#6c757d';
+                        const original = mistake.original_part || mistake.original_text || mistake.original || '';
+                        const corrected = mistake.corrected_version || mistake.corrected_text || mistake.corrected || '';
+                        const explanation = mistake.explanation || mistake.short_explanation || '';
+                        
+                        mistakesHtml += `
+                            <div style="margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 8px; border-left: 4px solid ${catColor};">
+                                <div style="font-size: 12px; font-weight: 700; color: ${catColor}; margin-bottom: 6px; text-transform: uppercase;">
+                                    ${displayName}
+                                </div>
+                                ${original ? `
+                                <div style="margin-bottom: 4px;">
+                                    <span style="font-size: 11px; color: #888;">Original:</span>
+                                    <span style="color: #dc3545; text-decoration: line-through; font-style: italic; margin-left: 4px;">"${original}"</span>
+                                </div>
+                                ` : ''}
+                                ${corrected ? `
+                                <div style="margin-bottom: 4px;">
+                                    <span style="font-size: 11px; color: #888;">Corrected:</span>
+                                    <span style="color: #28a745; font-weight: 600; margin-left: 4px;">"${corrected}"</span>
+                                </div>
+                                ` : ''}
+                                ${explanation ? `
+                                <div style="font-size: 11px; color: #666; font-style: italic; margin-top: 4px;">
+                                    💡 ${explanation}
+                                </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    mistakesHtml += '</div>';
+                }
+            }
+            
+            // Show improved sentence if available
+            if (analysis && analysis.improved_sentence) {
+                improvedSentenceHtml = `
+                    <div style="margin-top: 10px; padding: 10px 12px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-radius: 8px; border: 1px solid #28a745;">
+                        <div style="font-size: 11px; font-weight: 600; color: #155724; margin-bottom: 4px;">✨ IMPROVED SENTENCE:</div>
+                        <div style="color: #155724; font-weight: 500; font-size: 14px;">"${analysis.improved_sentence}"</div>
+                    </div>
+                `;
+            }
+            
+            // Always show the feedback box
+            feedbackHtml = `
+                <div class="analysis-details" style="margin-top: 10px; padding: 12px 14px; background: ${bgColor}; border-radius: 10px; font-size: 13px; color: ${textColor}; border: 1px solid ${borderColor};">
+                    <div style="font-weight: 600; font-size: 14px;">${icon} ${displayFeedback}</div>
+                    ${correctionSummaryHtml}
+                    ${mistakesHtml}
+                    ${improvedSentenceHtml}
+                </div>
+            `;
+            
+            container.innerHTML += `
+                <div class="message ai">
+                    <span class="message-label">AI Partner</span>
+                    <div class="message-bubble">
+                        ${feedback}
+                        ${feedbackHtml}
+                    </div>
+                </div>
+            `;
+            container.scrollTop = container.scrollHeight;
+            
+            // Speak only the feedback text (not the analysis)
+            speakText(feedback);
+        }
+
+        function updateScores(scores) {
+            // Live scores panel removed - scores shown only at session end
+            console.log('Current scores:', scores);
+        }
+
+        function updateScoreDisplay(type, value) {
+            // Live scores panel removed - scores shown only at session end
+            console.log(`${type}: ${value}`);
+        }
+
+        function resetScores() {
+            // Live scores panel removed - no reset needed
+        }
+
+        async function endSession() {
+            const result = await api('/session/end', 'POST');
+            if (result.success) {
+                // Save feedbacks to localStorage for history
+                if (currentSessionFeedbacks.length > 0 && result.conversationId) {
+                    const feedbackStorage = JSON.parse(localStorage.getItem('sessionFeedbacks') || '{}');
+                    feedbackStorage[result.conversationId] = currentSessionFeedbacks;
+                    localStorage.setItem('sessionFeedbacks', JSON.stringify(feedbackStorage));
+                }
+                showResults(result.report, result.conversationEvaluation);
+            } else {
+                goToDashboard();
+            }
+        }
+
+        function showResults(report, conversationEvaluation) {
+            // Show conversation evaluation (accuracy score)
+            if (conversationEvaluation) {
+                document.getElementById('accuracyScore').textContent = 
+                    Math.round(conversationEvaluation.accuracyScore) + '%';
+                document.getElementById('correctCount').textContent = conversationEvaluation.correctSentences;
+                document.getElementById('incorrectCount').textContent = conversationEvaluation.incorrectSentences;
+                document.getElementById('correctSentences').textContent = conversationEvaluation.correctSentences;
+                document.getElementById('incorrectSentences').textContent = conversationEvaluation.incorrectSentences;
+                document.getElementById('totalSentences').textContent = conversationEvaluation.totalSentences;
+                
+                // Show mistakes if any
+                if (conversationEvaluation.mistakes && conversationEvaluation.mistakes.length > 0) {
+                    document.getElementById('mistakesSection').style.display = 'block';
+                    document.getElementById('mistakesList').innerHTML = conversationEvaluation.mistakes
+                        .map(m => `
+                            <div class="feedback-item" style="border-left: 3px solid #ff4757; background: rgba(255,71,87,0.1);">
+                                <div style="font-weight: bold; margin-bottom: 5px;">📝 "${m.sentence}"</div>
+                                <div style="color: #ff4757; font-size: 0.9rem;">❌ ${m.mistakeType || 'Grammar error'}</div>
+                                <div style="color: #666; font-size: 0.85rem; margin-top: 5px;">💡 ${m.explanation || 'Review this sentence'}</div>
+                            </div>
+                        `).join('');
+                } else {
+                    document.getElementById('mistakesSection').style.display = 'none';
+                }
+            }
+            
+            // Show traditional report scores
+            if (report) {
+                updateFinalScore('Grammar', report.grammarScore?.value || report.grammarScore || 0);
+                updateFinalScore('Fluency', report.fluencyScore?.value || report.fluencyScore || 0);
+                
+                // Feedback
+                const feedback = report.feedback || [];
+                document.getElementById('finalFeedback').innerHTML = feedback
+                    .map(f => `<div class="feedback-item">${f}</div>`).join('');
+                
+                // Suggestions
+                const suggestions = report.suggestions || [];
+                document.getElementById('finalSuggestions').innerHTML = suggestions
+                    .map(s => `<div class="feedback-item suggestion">💡 ${s}</div>`).join('');
+            }
+            
+            showView('resultsView');
+        }
+
+        function updateFinalScore(type, value) {
+            const lowerType = type.toLowerCase();
+            document.getElementById(`final${type}`).textContent = value;
+            const bar = document.getElementById(`final${type}Bar`);
+            bar.style.width = `${value}%`;
+            bar.className = `score-fill ${value >= 80 ? 'good' : value >= 60 ? 'medium' : 'low'}`;
+        }
+
+        function goToDashboard() {
+            selectedTopicId = null;
+            document.getElementById('startBtn').disabled = true;
+            renderTopics();
+            showView('dashboardView');
+        }
+
+        // ==================== HISTORY FUNCTIONS ====================
+        
+        async function showHistoryView() {
+            showView('historyView');
+            await loadHistory();
+        }
+
+        async function loadHistory() {
+            const loadingEl = document.getElementById('historyLoading');
+            const emptyEl = document.getElementById('historyEmpty');
+            const listEl = document.getElementById('historyList');
+
+            loadingEl.classList.add('active');
+            emptyEl.style.display = 'none';
+            listEl.style.display = 'none';
+
+            try {
+                const result = await api('/history');
+                
+                loadingEl.classList.remove('active');
+
+                if (result.success && result.conversations && result.conversations.length > 0) {
+                    listEl.style.display = 'block';
+                    renderHistory(result.conversations);
+                } else {
+                    emptyEl.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                loadingEl.classList.remove('active');
+                emptyEl.style.display = 'block';
+                emptyEl.innerHTML = `
+                    <div style="font-size: 3rem;">⚠️</div>
+                    <h3>Error loading history</h3>
+                    <p>Please try again later.</p>
+                `;
+            }
+        }
+
+        // Show custom confirmation modal
+        function showDeleteConfirmModal(conversationId) {
+            const modal = document.getElementById('deleteConfirmModal');
+            modal.dataset.conversationId = conversationId;
+            modal.style.display = 'flex';
+        }
+
+        function closeDeleteConfirmModal() {
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+        }
+
+        async function confirmDeleteConversation() {
+            const modal = document.getElementById('deleteConfirmModal');
+            const conversationId = modal.dataset.conversationId;
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            const cancelBtn = document.getElementById('cancelDeleteBtn');
+            
+            // Show loading state
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<span class="spinner-small"></span> Deleting...';
+            cancelBtn.disabled = true;
+
+            try {
+                // Use api() function which includes the auth token
+                const result = await api(`/history/${conversationId}`, 'DELETE');
+                
+                if (result.success) {
+                    // Remove from localStorage as well
+                    const feedbackStorage = JSON.parse(localStorage.getItem('sessionFeedbacks') || '{}');
+                    delete feedbackStorage[conversationId];
+                    localStorage.setItem('sessionFeedbacks', JSON.stringify(feedbackStorage));
+                    
+                    closeDeleteConfirmModal();
+                    // Reload history to refresh the list
+                    loadHistory();
+                } else {
+                    closeDeleteConfirmModal();
+                    showErrorModal('Failed to delete conversation: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error deleting conversation:', error);
+                closeDeleteConfirmModal();
+                showErrorModal('Error deleting conversation. Please try again.');
+            } finally {
+                // Reset button state
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '🗑️ Delete';
+                cancelBtn.disabled = false;
+            }
+        }
+
+        function showErrorModal(message) {
+            const modal = document.getElementById('errorModal');
+            document.getElementById('errorModalMessage').textContent = message;
+            modal.style.display = 'flex';
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').style.display = 'none';
+        }
+
+        async function deleteConversation(conversationId) {
+            showDeleteConfirmModal(conversationId);
+        }
+
+        function renderHistory(conversations) {
+            const listEl = document.getElementById('historyList');
+            
+            listEl.innerHTML = conversations.map(conv => {
+                const date = new Date(conv.startedAt);
+                const dateStr = date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const duration = conv.duration ? formatDuration(conv.duration) : '-';
+                const score = conv.overallScore !== null ? conv.overallScore + '%' : '-';
+                const grammarScore = conv.grammarScore !== null ? conv.grammarScore + '%' : '-';
+                const messageCount = conv.messageCount || 0;
+                const targetLanguage = conv.targetLanguage || 'English';
+                
+                const languageFlags = {
+                    'English': '🇬🇧',
+                    'Spanish': '🇪🇸',
+                    'French': '🇫🇷',
+                    'German': '🇩🇪',
+                    'Italian': '🇮🇹',
+                    'Portuguese': '🇵🇹',
+                    'Russian': '🇷🇺',
+                    'Chinese': '🇨🇳',
+                    'Japanese': '🇯🇵',
+                    'Korean': '🇰🇷',
+                    'Turkish': '🇹🇷',
+                    'Arabic': '🇸🇦'
+                };
+                const flag = languageFlags[targetLanguage] || '🌐';
+                
+                const scoreClass = conv.overallScore >= 80 ? 'good' : conv.overallScore >= 60 ? 'medium' : 'low';
+                
+                return `
+                    <div class="history-card" style="position: relative;">
+                        <button class="delete-conversation-btn" onclick="event.stopPropagation(); deleteConversation(${conv.id})" title="Delete this conversation">
+                            🗑️
+                        </button>
+                        <div onclick="showFeedbackDetail(${conv.id})" style="cursor: pointer;">
+                            <div class="history-card-header">
+                                <div>
+                                    <div class="history-topic">🎯 ${conv.topicName || 'Unknown Topic'}</div>
+                                    <span class="history-badge">${conv.topicCategory || 'General'}</span>
+                                    <span class="history-badge" style="background: #667eea; color: white; margin-left: 5px;">
+                                        ${flag} ${targetLanguage}
+                                    </span>
+                                </div>
+                                <div class="history-date">📅 ${dateStr}</div>
+                            </div>
+                            <div class="history-card-body">
+                                <div class="history-stat score">
+                                    <div class="history-stat-value">${score}</div>
+                                    <div class="history-stat-label">Overall Score</div>
+                                </div>
+                                <div class="history-stat messages">
+                                    <div class="history-stat-value">${messageCount}</div>
+                                    <div class="history-stat-label">Messages</div>
+                                </div>
+                                <div class="history-stat duration">
+                                    <div class="history-stat-value">${duration}</div>
+                                    <div class="history-stat-label">Duration</div>
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin-top: 10px; color: #667eea; font-size: 0.85rem;">
+                                📋 Click to view feedbacks
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Show feedback detail modal
+        async function showFeedbackDetail(conversationId) {
+            const modal = document.getElementById('feedbackModal');
+            const content = document.getElementById('feedbackModalContent');
+            
+            content.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner"></div><p>Loading feedbacks...</p></div>';
+            modal.style.display = 'flex';
+            
+            // First try to get from localStorage
+            const feedbackStorage = JSON.parse(localStorage.getItem('sessionFeedbacks') || '{}');
+            const localFeedbacks = feedbackStorage[conversationId] || [];
+            
+            // Also get conversation details from API
+            let conv = null;
+            try {
+                const historyResult = await api('/history');
+                if (historyResult.success) {
+                    conv = historyResult.history.find(h => h.id === conversationId);
+                }
+            } catch (e) {
+                console.log('Could not fetch history:', e);
+            }
+            
+            // Convert local feedbacks to display format
+            const feedbacks = localFeedbacks.map(f => {
+                // Use the analysis data directly if available
+                const analysis = f.analysis || {};
+                const mistakes = analysis.mistakes || [];
+                
+                // Return all mistakes from the analysis
+                if (mistakes.length > 0) {
+                    return mistakes.map(m => ({
+                        originalText: m.original_text || m.original_part || f.originalText,
+                        correctedText: m.corrected_text || m.corrected_version || 'See AI suggestion',
+                        mistakeType: m.category || 'grammar',
+                        categoryDisplay: m.category_display || m.category || 'Grammar',
+                        explanation: m.explanation || m.short_explanation || '',
+                        wasRepeated: false,
+                        aiResponse: f.aiResponse,
+                        improvedSentence: analysis.improved_sentence || ''
+                    }));
+                }
+                
+                // Fallback: extract from AI response
+                const response = f.aiResponse || '';
+                let mistakeType = 'grammar';
+                
+                if (/past tense|verb tense|tense/i.test(response)) mistakeType = 'tense';
+                else if (/article|a\/an|the /i.test(response)) mistakeType = 'article';
+                else if (/preposition/i.test(response)) mistakeType = 'preposition';
+                else if (/subject.verb|agreement/i.test(response)) mistakeType = 'subject_verb_agreement';
+                else if (/word order|sentence structure|kelime sırası|devrik|inverted/i.test(response)) mistakeType = 'word_order';
+                else if (/plural|singular/i.test(response)) mistakeType = 'number';
+                else if (/spelling/i.test(response)) mistakeType = 'spelling';
+                
+                // Extract corrected text from response (usually in quotes)
+                const correctedMatch = response.match(/['"]([^'"]+)['"]/);
+                const correctedText = correctedMatch ? correctedMatch[1] : 'See correction above';
+                
+                return [{
+                    originalText: f.originalText,
+                    correctedText: correctedText,
+                    mistakeType: mistakeType,
+                    categoryDisplay: mistakeType.charAt(0).toUpperCase() + mistakeType.slice(1).replace(/_/g, ' '),
+                    explanation: response.split(/[.!?]/)[0] + '.',
+                    wasRepeated: false,
+                    aiResponse: f.aiResponse,
+                    improvedSentence: ''
+                }];
+            }).flat(); // Flatten the array since we may have multiple mistakes per feedback
+            
+            let feedbacksHtml = '';
+            
+            if (feedbacks.length === 0) {
+                feedbacksHtml = `
+                    <div style="text-align: center; padding: 40px; color: #28a745;">
+                        <div style="font-size: 3rem;">🎉</div>
+                        <h3>Perfect Session!</h3>
+                        <p>No corrections were recorded for this practice session.</p>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 10px;">Note: Feedback tracking is only available for new sessions.</p>
+                    </div>
+                `;
+            } else {
+                // Group feedbacks by category
+                const grouped = {};
+                feedbacks.forEach(f => {
+                    const type = f.mistakeType || 'other';
+                    if (!grouped[type]) grouped[type] = [];
+                    grouped[type].push(f);
+                });
+                
+                // Category icons - matches the 8 categories from AIEngine
+                const typeIcons = {
+                    'grammar_tense_verb': '⏰',
+                    'grammar_sentence_structure': '🔗',
+                    'vocabulary_word_choice': '📚',
+                    'prepositions_articles': '📝',
+                    'word_order': '🔀',
+                    'spelling_form': '✏️',
+                    'fluency_naturalness': '💬',
+                    'clarity_meaning': '🔍',
+                    // Legacy
+                    'tense': '⏰',
+                    'article': '📝',
+                    'preposition': '📍',
+                    'subject_verb_agreement': '🔗',
+                    'number': '🔢',
+                    'spelling': '✏️',
+                    'grammar': '📖',
+                    'other': '❓'
+                };
+                
+                // Category display names
+                const typeNames = {
+                    'grammar_tense_verb': 'Grammar – Tense & Verb Forms',
+                    'grammar_sentence_structure': 'Grammar – Sentence Structure',
+                    'vocabulary_word_choice': 'Vocabulary & Word Choice',
+                    'prepositions_articles': 'Prepositions & Articles',
+                    'word_order': 'Word Order',
+                    'spelling_form': 'Spelling / Form Errors',
+                    'fluency_naturalness': 'Fluency & Naturalness',
+                    'clarity_meaning': 'Clarity & Meaning',
+                    // Legacy
+                    'tense': 'Tense Errors',
+                    'article': 'Article Usage',
+                    'preposition': 'Preposition Errors',
+                    'subject_verb_agreement': 'Subject-Verb Agreement',
+                    'number': 'Singular/Plural',
+                    'spelling': 'Spelling',
+                    'grammar': 'Grammar',
+                    'other': 'Other'
+                };
+                
+                // Category colors
+                const typeColors = {
+                    'grammar_tense_verb': '#e74c3c',
+                    'grammar_sentence_structure': '#9b59b6',
+                    'vocabulary_word_choice': '#3498db',
+                    'prepositions_articles': '#e67e22',
+                    'word_order': '#1abc9c',
+                    'spelling_form': '#f39c12',
+                    'fluency_naturalness': '#2ecc71',
+                    'clarity_meaning': '#34495e'
+                };
+                
+                for (const [type, items] of Object.entries(grouped)) {
+                    const catColor = typeColors[type] || '#667eea';
+                    const catName = items[0]?.categoryDisplay || typeNames[type] || type.replace(/_/g, ' ');
+                    
+                    feedbacksHtml += `
+                        <div class="feedback-type-section" style="margin-bottom: 20px;">
+                            <h4 style="color: ${catColor}; margin-bottom: 15px; border-bottom: 2px solid ${catColor}; padding-bottom: 8px;">
+                                ${typeIcons[type] || '📝'} ${catName} (${items.length})
+                            </h4>
+                            ${items.map(f => `
+                                <div class="feedback-item" style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 12px; border-left: 4px solid ${catColor};">
+                                    <div style="margin-bottom: 10px;">
+                                        <span style="font-size: 11px; color: #888; text-transform: uppercase;">Original:</span>
+                                        <div style="color: #dc3545; text-decoration: line-through; font-style: italic; margin-top: 2px;">"${f.originalText}"</div>
+                                    </div>
+                                    <div style="margin-bottom: 10px;">
+                                        <span style="font-size: 11px; color: #888; text-transform: uppercase;">Corrected:</span>
+                                        <div style="color: #28a745; font-weight: 600; margin-top: 2px;">"${f.correctedText}"</div>
+                                    </div>
+                                    ${f.explanation ? `
+                                    <div style="background: #fff3cd; padding: 8px 12px; border-radius: 6px; margin-top: 8px;">
+                                        <span style="font-size: 0.85rem; color: #856404;">💡 ${f.explanation}</span>
+                                    </div>
+                                    ` : ''}
+                                    ${f.improvedSentence ? `
+                                    <div style="background: #d4edda; padding: 8px 12px; border-radius: 6px; margin-top: 8px;">
+                                        <span style="font-size: 11px; color: #155724; font-weight: 600;">✨ Full sentence:</span>
+                                        <div style="color: #155724; margin-top: 2px;">"${f.improvedSentence}"</div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            }
+            
+            content.innerHTML = `
+                <div class="feedback-modal-header">
+                    <h2>📊 Session Feedback Details</h2>
+                    <button onclick="closeFeedbackModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">✕</button>
+                </div>
+                ${conv ? `
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: bold;">${conv.overallScore ? conv.overallScore + '%' : '-'}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Score</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: bold;">${conv.messageCount || 0}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Messages</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: bold;">${feedbacks.length}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Corrections</div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px; padding: 10px; background: #f0f0f0; border-radius: 8px;">
+                        <strong>🎯 Topic:</strong> ${conv.topicName} 
+                        <span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: 10px;">${conv.topicCategory}</span>
+                    </div>
+                ` : ''}
+                <div class="feedbacks-list" style="max-height: 400px; overflow-y: auto;">
+                    ${feedbacksHtml}
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button onclick="closeFeedbackModal()" class="btn btn-primary">Close</button>
+                </div>
+            `;
+        }
+        
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').style.display = 'none';
+        }
+
+        // User Profile Functions
+        async function showUserProfile() {
+            const modal = document.getElementById('userProfileModal');
+            modal.style.display = 'flex';
+            
+            // Set basic info
+            document.getElementById('profileName').textContent = currentUser.name;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profileAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+            
+            // Fetch user stats from backend
+            try {
+                const result = await api('/auth/user/stats');
+                if (result.success) {
+                    const stats = result.stats;
+                    
+                    // Update stats
+                    document.getElementById('profileScore').textContent = stats.avg_score ? Math.round(stats.avg_score) + '%' : '-';
+                    document.getElementById('profilePractices').textContent = stats.total_conversations || 0;
+                    document.getElementById('profileTime').textContent = stats.total_practice_minutes || 0;
+                    
+                    // Update language-specific levels
+                    const languageLevelsList = document.getElementById('languageLevelsList');
+                    const languageStats = stats.language_stats || {};
+                    const languages = Object.keys(languageStats);
+                    
+                    if (languages.length > 0) {
+                        const levelEmojis = { beginner: '🌱', intermediate: '⭐', advanced: '🏆' };
+                        const levelNames = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' };
+                        const levelColors = { 
+                            beginner: 'linear-gradient(135deg, #a8e063 0%, #56ab2f 100%)', 
+                            intermediate: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', 
+                            advanced: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' 
+                        };
+                        const flagEmojis = {
+                            'English': '🇬🇧',
+                            'Spanish': '🇪🇸',
+                            'French': '🇫🇷',
+                            'German': '🇩🇪',
+                            'Italian': '🇮🇹',
+                            'Portuguese': '🇵🇹',
+                            'Japanese': '🇯🇵',
+                            'Chinese': '🇨🇳',
+                            'Korean': '🇰🇷',
+                            'Russian': '🇷🇺',
+                            'Arabic': '🇸🇦',
+                            'Turkish': '🇹🇷'
+                        };
+                        
+                        languageLevelsList.innerHTML = languages.map(lang => {
+                            const langStats = languageStats[lang];
+                            const level = langStats.proficiency_level || 'beginner';
+                            const avgScore = langStats.avg_score ? Math.round(langStats.avg_score) : 0;
+                            const practices = langStats.total_conversations || 0;
+                            const flag = flagEmojis[lang] || '🌐';
+                            
+                            return `
+                                <div style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 12px; border-radius: 10px; border: 1px solid #e9ecef;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 1.2rem;">${flag}</span>
+                                        <span style="font-weight: 600; color: #333;">${lang}</span>
+                                        <span style="font-size: 0.75rem; color: #888;">(${practices} practices, ${avgScore}%)</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 15px; background: ${levelColors[level]}; color: white; font-size: 0.75rem; font-weight: 600;">
+                                        ${levelEmojis[level]} ${levelNames[level]}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        languageLevelsList.innerHTML = `
+                            <div style="text-align: center; color: #888; padding: 15px; font-size: 0.9rem;">
+                                🎯 Start practicing to see your language levels!
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user stats:', error);
+            }
+        }
+        
+        function closeUserProfile() {
+            document.getElementById('userProfileModal').style.display = 'none';
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds || seconds <= 0) return '-';
+            
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            
+            if (mins > 0) {
+                return `${mins}m ${secs}s`;
+            }
+            return `${secs}s`;
+        }
+
+        function showAlert(containerId, message, type) {
+            document.getElementById(containerId).innerHTML = `
+                <div class="alert alert-${type}">${message}</div>
+            `;
+        }
+
+        // Check if user is already logged in
+        async function checkAuth() {
+            const result = await api('/auth/user');
+            if (result.success) {
+                currentUser = result.user;
+                showDashboard();
+            }
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1001; justify-content: center; align-items: center;">
+        <div class="confirm-modal-content">
+            <div class="confirm-modal-icon">🗑️</div>
+            <h3 class="confirm-modal-title">Delete Conversation?</h3>
+            <p class="confirm-modal-text">This action cannot be undone. All messages and feedback from this conversation will be permanently deleted.</p>
+            <div class="confirm-modal-buttons">
+                <button id="cancelDeleteBtn" onclick="closeDeleteConfirmModal()" class="confirm-btn confirm-btn-cancel">Cancel</button>
+                <button id="confirmDeleteBtn" onclick="confirmDeleteConversation()" class="confirm-btn confirm-btn-delete">🗑️ Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1001; justify-content: center; align-items: center;">
+        <div class="confirm-modal-content">
+            <div class="confirm-modal-icon">⚠️</div>
+            <h3 class="confirm-modal-title" style="color: #ef4444;">Error</h3>
+            <p id="errorModalMessage" class="confirm-modal-text">An error occurred.</p>
+            <div class="confirm-modal-buttons">
+                <button onclick="closeErrorModal()" class="confirm-btn confirm-btn-cancel" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="profile-modal">
+        <div class="profile-modal-content" style="max-width: 420px;">
+            <div class="profile-avatar" id="profileAvatar">👤</div>
+            <div class="profile-name" id="profileName">User Name</div>
+            <div class="profile-email" id="profileEmail">user@email.com</div>
+            
+            <!-- Language Levels Section -->
+            <div id="languageLevelsSection" style="width: 100%; margin: 15px 0;">
+                <div style="font-size: 0.85rem; color: #666; margin-bottom: 10px; font-weight: 600;">📚 Language Levels</div>
+                <div id="languageLevelsList" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Language levels will be populated here -->
+                </div>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <div class="profile-stat-value" id="profileScore">-</div>
+                    <div class="profile-stat-label">Avg Score</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="profile-stat-value" id="profilePractices">0</div>
+                    <div class="profile-stat-label">Practices</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="profile-stat-value" id="profileTime">0</div>
+                    <div class="profile-stat-label">Minutes</div>
+                </div>
+            </div>
+            <button onclick="closeUserProfile()" class="btn btn-primary" style="width: 100%;">Close</button>
+        </div>
+    </div>
+
+    <!-- Feedback Detail Modal -->
+    <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div id="feedbackModalContent" style="background: white; border-radius: 15px; padding: 25px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <!-- Content will be loaded dynamically -->
+        </div>
+    </div>
+    
+    <style>
+        .feedback-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .feedback-modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .feedback-type-section {
+            margin-bottom: 25px;
+        }
+        .history-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+    </style>
+</body>
+</html>
