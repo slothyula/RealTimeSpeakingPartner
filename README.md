@@ -2,6 +2,45 @@
 
 An intelligent language learning system that enables users to practice speaking in real-time through natural conversations with an AI partner.
 
+## 🎯 Features
+
+- **Real-Time AI Conversations** - Practice speaking with an intelligent AI partner powered by Google Gemini
+- **Multi-Language Support** - Learn English, Spanish, French, German, Turkish and 20+ languages
+- **Speech Recognition** - Convert your speech to text for analysis
+- **Text-to-Speech** - Hear AI responses with natural voice synthesis
+- **Grammar Evaluation** - Get instant feedback on grammar mistakes
+- **Fluency Assessment** - Measure your speaking pace and coherence
+- **Topic-Based Practice** - Choose from various conversation topics (Daily Life, Business, Travel, Academic)
+- **Performance Tracking** - View your learning history and progress
+- **User Authentication** - Secure login and registration system
+- **Admin Dashboard** - Manage users, topics, and view statistics
+
+## 🛠️ Tech Stack
+
+### Backend
+- **Node.js** (>=18.0.0) - Runtime environment
+- **TypeScript** - Type-safe JavaScript
+- **Express.js** - Web framework
+- **MySQL** - Relational database
+
+### AI & Speech
+- **Google Gemini API** - AI conversation engine
+- **Web Speech API** - Speech recognition and synthesis
+
+### Authentication & Security
+- **bcrypt** - Password hashing
+- **express-session** - Session management
+- **Token-based auth** - Multi-tab support
+
+### Development Tools
+- **ESLint** - Code linting
+- **Jest** - Testing framework
+- **ts-node** - TypeScript execution
+
+## 📸 Screenshots
+
+> Coming soon - Screenshots of the application interface
+
 ## Project Structure
 
 ```
@@ -160,6 +199,70 @@ npm run create-admin   # Test admin kullanıcısı oluştur
 npm run remove-moderator # Moderatör kullanıcısını sil
 ```
 
+## 🔐 Environment Variables
+
+Create a `.env` file in the root directory based on `.env.example`:
+
+```env
+# Google Gemini API Key
+# Get your key from: https://makersuite.google.com/app/apikey
+GEMINI_API_KEY=your_api_key_here
+
+# Database Configuration
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=speaking_partner
+DB_PORT=3306
+
+# Server Configuration
+PORT=4499
+NODE_ENV=development
+```
+
+## 📡 API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | User login |
+| POST | `/api/auth/logout` | User logout |
+| GET | `/api/auth/user` | Get current user info |
+| GET | `/api/auth/user/stats` | Get user statistics |
+
+### Topics
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/topics` | Get all available topics |
+| GET | `/api/topics/:id` | Get topic by ID |
+
+### Practice Session
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/session/start` | Start a new practice session |
+| POST | `/api/session/chat` | Send message and get AI response |
+| POST | `/api/session/practice` | Process audio for practice |
+| POST | `/api/session/end` | End current session |
+| GET | `/api/session/status` | Get session status |
+
+### History & Feedback
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/history` | Get conversation history |
+| GET | `/api/history/:id` | Get specific conversation |
+| DELETE | `/api/history/:id` | Delete conversation |
+| GET | `/api/history/:id/feedbacks` | Get feedbacks for conversation |
+| GET | `/api/feedback/history` | Get all feedback history |
+| GET | `/api/performance/history` | Get performance history |
+
+### Admin
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/active-sessions` | Get active user sessions |
+| GET | `/api/admin/active-user-ids` | Get active user IDs |
+| GET | `/api/admin/online-user-ids` | Get online user IDs |
+
 ## Classes and Methods
 
 ### User
@@ -278,6 +381,46 @@ npm run remove-moderator # Moderatör kullanıcısını sil
 - 230201042 – Hasan Mert Kaya (Section 1)
 - 230205024 – Burak Efe Güngör (Section 2)
 
-## License
+## 🤝 Contributing
 
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Code Standards
+- Follow TypeScript best practices
+- Use ESLint for code linting (`npm run lint`)
+- Write meaningful commit messages
+- Add comments for complex logic
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+```
 MIT License
+
+Copyright (c) 2026 SENG321 Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
